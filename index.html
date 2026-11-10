@@ -1,3 +1,4 @@
+الظاهر أن الكود توقف في المنتصف عند السطر الأخير (<h*). ها هو الكود الكامل والنهائي بدون أي نقص، جاهز لتقومي بنسخه ولصقه مباشرة مكان الكود القديم:
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -325,5 +326,143 @@
         <div class="section-title">خيارات استشراف المستقبل</div>
 
         <div class="future-option-card" tabindex="0" onclick="showToast('جاري تحليل أفق 2030: التحول الرقمي والاستدامة الحضرية.', 'info')">
-            <h*
-
+            <h3>أفق 2030: التحول الحضري</h3>
+            <p>دراسة التغيرات المناخية والديموغرافية المتوقعة في المدن الكبرى.</p>
+        </div>
+
+        <div class="future-option-card" tabindex="0" onclick="showToast('جاري تقييم الاستقرار الطوبولوجي وشبكات الطاقة.', 'info')">
+            <h3>الاستقرار الطوبولوجي</h3>
+            <p>مراقبة توازن العقد الحيوية ومحاكاة تدفق الموارد الطاقية.</p>
+        </div>
+
+        <div class="future-option-card" tabindex="0" onclick="showToast('جاري تفعيل نموذج التنبؤ بالزلازل والاضطرابات الزلزالية.', 'info')">
+            <h3>الرصد الزلزالي المتقدم</h3>
+            <p>تحليل حركة الصفائح الأرضية واستشراف بؤر الضغط التكتوني.</p>
+        </div>
+    </aside>
+
+    <main>
+        <header>
+            <div class="search-box">
+                <form onsubmit="handleSearch(event)">
+                    <input type="text" id="cityInput" placeholder="ادخل اسم المدينة (مثلاً: مراكش، طوكيو، باريس)..." required />
+                    <button type="submit">بحث وتحليل</button>
+                </form>
+                <button class="secondary-btn" onclick="resetToDefault()">الوضع الافتراضي</button>
+            </div>
+            <div class="status-indicator">● النظام الهرمي نشط</div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span>المدينة المحددة</span>
+                    <h2 id="cityNameDisplay">مراكش، المغرب</h2>
+                </div>
+                <div class="metric-card">
+                    <span>درجة الحرارة الحالية</span>
+                    <h2 id="tempDisplay">-- °C</h2>
+                </div>
+                <div class="metric-card">
+                    <span>مؤشر الاستقرار الطوبولوجي</span>
+                    <h2 id="stabilityDisplay">99.8%</h2>
+                </div>
+            </div>
+
+            <div id="map"></div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let marker;
+
+        // إحداثيات افتراضية (مراكش)
+        const defaultLat = 31.6295;
+        const defaultLon = -7.9811;
+        const defaultName = "مراكش، المغرب";
+
+        function initMap(lat = defaultLat, lon = defaultLon, name = defaultName) {
+            if (!map) {
+                map = L.map('map').setView([lat, lon], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+                marker = L.marker([lat, lon]).addTo(map).bindPopup(name).openPopup();
+            } else {
+                map.setView([lat, lon], 12);
+                marker.setLatLng([lat, lon]).setPopupContent(name).openPopup();
+            }
+            fetchWeatherData(lat, lon);
+        }
+
+        async function fetchWeatherData(lat, lon) {
+            try {
+                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                const data = await response.json();
+                if (data && data.current_weather) {
+                    document.getElementById('tempDisplay').innerText = `${data.current_weather.temperature} °C`;
+                } else {
+                    document.getElementById('tempDisplay').innerText = "غير متوفر";
+                }
+            } catch (err) {
+                document.getElementById('tempDisplay').innerText = "خطأ في الاتصال";
+            }
+        }
+
+        async function handleSearch(event) {
+            event.preventDefault();
+            const query = document.getElementById('cityInput').value.trim();
+            if (!query) return;
+
+            showToast(`جاري البحث عن "${query}" عبر شبكة الأقمار...`, 'info');
+
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                const results = await response.json();
+
+                if (results && results.length > 0) {
+                    const lat = parseFloat(results[0].lat);
+                    const lon = parseFloat(results[0].lon);
+                    const displayName = results[0].display_name.split(',')[0];
+
+                    document.getElementById('cityNameDisplay').innerText = displayName;
+                    initMap(lat, lon, displayName);
+                    showToast(`تم تحديث الخريطة وبيانات ${displayName} بنجاح.`, 'success');
+                } else {
+                    showToast('لم يتم العثور على هذه المدينة، تأكد من الإملاء.', 'error');
+                }
+            } catch (err) {
+                showToast('حدث خطأ أثناء الاتصال بقاعدة البيانات.', 'error');
+            }
+        }
+
+        function resetToDefault() {
+            document.getElementById('cityInput').value = '';
+            document.getElementById('cityNameDisplay').innerText = defaultName;
+            initMap(defaultLat, defaultLon, defaultName);
+            showToast('تم العودة للوضع الافتراضي (مراكش).', 'info');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.className = `toast ${type} show`;
+            toast.innerText = message;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // تشغيل الخريطة لأول مرة عند تحميل الصفحة
+        window.onload = () => {
+            initMap();
+        };
+    </script>
+</body>
+</html>
+
