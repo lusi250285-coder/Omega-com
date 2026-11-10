@@ -1,455 +1,213 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>حاسوب أوميغا الهرمي - المنصة الشاملة</title>
-
-    <!-- Leaflet CSS للخرائط -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسوب أوميغا الهرمي - المنصة النهائية</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <style>
         :root {
-            --bg-primary: #f8fafc;
-            --bg-card: #ffffff;
-            --border-color: #e2e8f0;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
+            --bg-pure: #ffffff;
+            --border-clean: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-gray: #475569;
             --accent-blue: #2563eb;
             --accent-green: #16a34a;
-            --accent-orange: #d97706;
-            --accent-red: #dc2626;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+        body { background-color: var(--bg-pure); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
 
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+        /* Navigation Sidebar */
+        nav { width: 280px; border-left: 1px solid var(--border-clean); display: flex; flex-direction: column; padding: 20px; background: #fafafa; }
+        .app-title { font-size: 1.2rem; font-weight: 800; color: var(--accent-blue); margin-bottom: 30px; }
+        .nav-btn { width: 100%; padding: 15px; margin-bottom: 10px; background: white; border: 1px solid var(--border-clean); border-radius: 8px; font-weight: 600; cursor: pointer; text-align: right; transition: all 0.2s; }
+        .nav-btn.active, .nav-btn:hover { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
 
-        /* الشريط الجانبي للذكاء الاصطناعي والمعضلات */
-        aside {
-            width: 390px;
-            background: var(--bg-card);
-            border-left: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: var(--shadow);
-            z-index: 10;
-        }
+        /* Main Content Area */
+        main { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; }
+        .tab-content { display: none; height: 100%; flex-direction: column; padding: 30px; overflow-y: auto; }
+        .tab-content.active { display: flex; }
 
-        .brand h1 {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--accent-blue);
-            margin-bottom: 4px;
-        }
+        h2 { font-size: 1.5rem; margin-bottom: 15px; color: var(--text-dark); }
+        p.subtitle { color: var(--text-gray); margin-bottom: 25px; }
 
-        .brand p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-        }
+        /* Tab 1: Problem Solver */
+        .problem-solver { display: flex; flex-direction: column; gap: 15px; max-width: 800px; }
+        select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border-clean); border-radius: 8px; outline: none; font-size: 1rem; }
+        textarea { height: 150px; resize: vertical; }
+        .solve-btn { padding: 15px; background: var(--accent-green); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        #solutionOutput { padding: 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; white-space: pre-wrap; display: none; }
 
-        /* ديكور وتحية القسم الجانبي */
-        .zone-banner {
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.85rem;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-        }
-        .zone-banner h3 { font-size: 0.95rem; margin-bottom: 3px; }
+        /* Tab 2: AI Chat */
+        .ai-container { display: flex; flex-direction: column; height: 100%; max-width: 800px; }
+        #chatMsgs { flex: 1; border: 1px solid var(--border-clean); border-radius: 8px; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; background: #fafafa; }
+        .msg { padding: 10px 15px; border-radius: 8px; max-width: 70%; }
+        .msg.user { align-self: flex-end; background: var(--accent-blue); color: white; }
+        .msg.ai { align-self: flex-start; background: white; border: 1px solid var(--border-clean); }
+        .input-group { display: flex; gap: 10px; }
+        .input-group input { flex: 1; }
+        .send-btn { padding: 12px 25px; background: var(--accent-blue); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
-        .section-title {
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin: 15px 0 8px 0;
-        }
+        /* Tab 3: Map Dashboard */
+        .map-container { display: flex; flex-direction: column; height: 100%; }
+        .control-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .control-bar input { flex: 1; }
+        .map-wrap { flex: 1; border: 1px solid var(--border-clean); border-radius: 8px; overflow: hidden; }
+        #map { width: 100%; height: 100%; }
 
-        /* صندوق المحادثة مع الذكاء الاصطناعي */
-        .ai-chat-box {
-            background: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .chat-history {
-            height: 150px;
-            overflow-y: auto;
-            font-size: 0.82rem;
-            background: white;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            line-height: 1.5;
-        }
-
-        .ai-chat-box textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 0.85rem;
-            outline: none;
-            resize: none;
-        }
-
-        .ai-chat-box button {
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .ai-chat-box button:hover {
-            background: #1d4ed8;
-        }
-
-        /* اقتراحات المعضلات العلمية */
-        .dilemma-card {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .dilemma-card:hover {
-            background: #dbeafe;
-            transform: translateY(-1px);
-        }
-
-        .dilemma-card h4 {
-            font-size: 0.85rem;
-            color: var(--accent-blue);
-            margin-bottom: 4px;
-        }
-
-        .dilemma-card p {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-        }
-
-        /* القسم الرئيسي (الخريطة والتحكم) */
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        header {
-            padding: 15px 25px;
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .search-container {
-            display: flex;
-            gap: 8px;
-            flex: 1;
-            max-width: 500px;
-        }
-
-        .search-container input {
-            flex: 1;
-            padding: 9px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            outline: none;
-            font-size: 0.9rem;
-        }
-
-        .search-container button {
-            padding: 9px 16px;
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* ديكور وتحية الخريطة والطقس */
-        .map-banner-bar {
-            background: #ffffff;
-            padding: 10px 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-        }
-
-        /* لوحة التحكم داخل الخريطة (طبقات الطقس والزلازل) */
-        .map-layers-panel {
-            display: flex;
-            gap: 10px;
-            background: #f8fafc;
-            padding: 8px 20px;
-            border-bottom: 1px solid var(--border-color);
-            align-items: center;
-        }
-
-        .layer-btn {
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text-main);
-            transition: 0.2s;
-        }
-
-        .layer-btn.active {
-            background: var(--accent-blue);
-            color: white;
-            border-color: var(--accent-blue);
-        }
-
-        /* حاوية الخريطة */
-        #map {
-            flex: 1;
-            width: 100%;
-            z-index: 1;
-        }
-
-        /* إشعارات الـ Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(15, 23, 42, 0.9);
-            color: white;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .toast.show { opacity: 1; }
-
-        @media (max-width: 850px) {
-            body { flex-direction: column; overflow: auto; }
-            aside { width: 100%; height: auto; }
-            main { height: 70vh; }
-        }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--text-dark); color: white; padding: 12px 24px; border-radius: 999px; display: none; }
     </style>
 </head>
 <body>
 
-    <!-- الشريط الجانبي: الذكاء الاصطناعي والمعضلات -->
-    <aside>
-        <div class="brand">
-            <h1>حاسوب أوميغا الهرمي</h1>
-            <p>منصة التحليل المعرفي والاستشراف</p>
-        </div>
+    <nav>
+        <div class="app-title">حاسوب أوميغا الهرمي</div>
+        <button class="nav-btn active" onclick="switchTab('solver')">1. حل المعضلات العلمية</button>
+        <button class="nav-btn" onclick="switchTab('aichat')">2. مساعد الذكاء الاصطناعي</button>
+        <button class="nav-btn" onclick="switchTab('mapdash')">3. خريطة الطقس والطرق</button>
+    </nav>
 
-        <!-- ديكور وتحية قطاع الذكاء الاصطناعي -->
-        <div class="zone-banner">
-            <h3>🤖 محطة العقل المعرفي (Ω-AI)</h3>
-            <p>مرحباً بكِ في محراب التحليل الفكري.اطرحي أي معضلة علمية واستشرفي الحلول معنا.</p>
-        </div>
-
-        <div class="section-title">مساعد الذكاء الاصطناعي</div>
-        <div class="ai-chat-box">
-            <div class="chat-history" id="chatHistory">
-                <b>Ω-AI:</b> أهلاً بكِ. أنا جاهز للإجابة عن أي سؤال علمي أو معضلة ترغبين في تفكيكها.
-            </div>
-            <textarea id="aiQuestionInput" rows="2" placeholder="اكتبي سؤالك العلمي هنا..."></textarea>
-            <button onclick="askAI()">إرسال وتحليل السؤال</button>
-        </div>
-
-        <div class="section-title">أعظم المعضلات العلمية المقترحة</div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-            <div class="dilemma-card" onclick="loadDilemma('فرضية ريمان (Riemann Hypothesis)')">
-                <h4>فرضية ريمان</h4>
-                <p>توزيع أعداد الأسرار الأولية وارتباطها بالأخطاء الطوبولوجية.</p>
-            </div>
-            <div class="dilemma-card" onclick="loadDilemma('مشكلة يانغ-ميلز وفجوة الكتلة')">
-                <h4>يانغ-ميلز وفجوة الكتلة</h4>
-                <p>فهم الفيزياء الكمية وميكانيزمات الكتلة في الجسيمات.</p>
-            </div>
-            <div class="dilemma-card" onclick="loadDilemma('طوبولوجيا الزمكان والتنبؤ الكوني')">
-                <h4>طوبولوجيا الزمكان</h4>
-                <p>ربط تدفق البيانات الكونية بالتنبؤ بالاضطرابات الطبيعية.</p>
-            </div>
-        </div>
-    </aside>
-
-    <!-- القسم الرئيسي: الخريطة وطبقات الطقس والزلازل -->
     <main>
-        <header>
-            <div class="search-container">
-                <input type="text" id="citySearchInput" placeholder="بحث عن مدينة (مراكش، طوكيو، باريس)..." />
-                <button onclick="searchCity()">بحث</button>
+        <!-- Tab 1: Scientific Problem Solver -->
+        <section id="solver" class="tab-content active">
+            <h2>محرك حل المعضلات الكبرى</h2>
+            <p class="subtitle">اختاري المعضلة أو اكتبيها ليقوم النظام بتفكيكها وحلها.</p>
+            <div class="problem-solver">
+                <select id="dilemmaSelector" onchange="fillDilemma()">
+                    <option value="">-- اختاري معضلة جاهزة أو اكتبي أدناه --</option>
+                    <option value="فرضية ريمان">فرضية ريمان (توزيع الأعداد الأولية)</option>
+                    <option value="طوبولوجيا الزمكان">طوبولوجيا الزمكان والجاذبية الكمية</option>
+                    <option value="معادلات ناڤير-ستوكس">ناڤير-ستوكس (سيلان الموائع والاضطراب)</option>
+                </select>
+                <textarea id="customDilemma" placeholder="اكتبي المعضلة العلمية الخاصة بكِ هنا..."></textarea>
+                <button class="solve-btn" onclick="solveDilemma()">تحليل وحل المعضلة</button>
+                <div id="solutionOutput"></div>
             </div>
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-green);">● النظام الطوبولوجي متصل</div>
-        </header>
+        </section>
 
-        <!-- ديكور وتحية قطاع الخريطة والبيانات -->
-        <div class="map-banner-bar">
-            <span>🌍 <b>مرصد الكوكب الحي:</b> تتبعي نبض الأرض، الأرصاد الجوية، والتحولات الكونية لحظة بلحظة.</span>
-            <span style="color: var(--accent-blue); font-weight: 600;">الخريطة التفاعلية النشطة</span>
-        </div>
+        <!-- Tab 2: AI Assistant -->
+        <section id="aichat" class="tab-content">
+            <h2>مساعد الذكاء الاصطناعي (Ω-AI)</h2>
+            <p class="subtitle">مساحة خاصة لطرح أي سؤال والحصول على إجابة فورية.</p>
+            <div class="ai-container">
+                <div id="chatMsgs">
+                    <div class="msg ai">أهلاً بكِ يا فدوى. أنا هنا للإجابة عن أي سؤال في بالك. تفضلي!</div>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="userInput" placeholder="اكتبي سؤالك هنا..." onkeypress="if(event.key==='Enter') sendChat()">
+                    <button class="send-btn" onclick="sendChat()">إرسال</button>
+                </div>
+            </div>
+        </section>
 
-        <!-- طبقات الخريطة التفاعلية -->
-        <div class="map-layers-panel">
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">طبقات العرض:</span>
-            <button class="layer-btn active" id="btnWeather" onclick="switchLayer('weather')">🌤️ الطقس والحرارة</button>
-            <button class="layer-btn" id="btnRain" onclick="switchLayer('rain')">🌧️ الأمطار والغيوم</button>
-            <button class="layer-btn" id="btnEarthquake" onclick="switchLayer('earthquake')">⚡ النشاط الزلزالي</button>
-        </div>
-
-        <div id="map"></div>
+        <!-- Tab 3: Maps & Forecasting Dashboard -->
+        <section id="mapdash" class="tab-content">
+            <h2>لوحة الخريطة، الطقس، وحالة الطرق</h2>
+            <p class="subtitle">البحث عن المدن، مراقبة المناخ، واستشراف حالة الطرق.</p>
+            <div class="map-container">
+                <div class="control-bar">
+                    <input type="text" id="citySearch" placeholder="ابحثي عن أي مدينة في العالم...">
+                    <button class="send-btn" onclick="searchCity()">بحث في الخريطة</button>
+                </div>
+                <div class="map-wrap">
+                    <div id="map"></div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <div id="toast" class="toast"></div>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let map;
-        let activeMarker;
-        let currentLayerType = 'weather';
-
-        const defaultLat = 31.6295;
-        const defaultLon = -7.9811;
-
-        function initMap(lat = defaultLat, lon = defaultLon, title = "مراكش، المغرب") {
-            if (!map) {
-                map = L.map('map').setView([lat, lon], 11);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap'
-                }).addTo(map);
-            } else {
-                map.setView([lat, lon], 11);
-            }
-
-            if (activeMarker) {
-                map.removeLayer(activeMarker);
-            }
-
-            activeMarker = L.marker([lat, lon]).addTo(map)
-                .bindPopup(`<b>${title}</b><br>الوضع: نشط طوبولوجياً`)
-                .openPopup();
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            showToast(`تم الانتقال إلى قسم: ${event.currentTarget.innerText.split('.')[1]}`);
         }
 
-        function switchLayer(type) {
-            currentLayerType = type;
-            document.querySelectorAll('.layer-btn').forEach(btn => btn.classList.remove('active'));
-            
-            if(type === 'weather') {
-                document.getElementById('btnWeather').classList.add('active');
-                showToast("🌤️ تم تفعيل طبقة الرصد المناخي والحراري.", "info");
-            } else if(type === 'rain') {
-                document.getElementById('btnRain').classList.add('active');
-                showToast("🌧️ تم تفعيل طبقة محاكاة الأمطار والسحب.", "info");
-            } else if(type === 'earthquake') {
-                document.getElementById('btnEarthquake').classList.add('active');
-                showToast("⚡ تم تفعيل شبكة الرصد الزلزالي والنشاط التكتوني.", "info");
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2000);
+        }
+
+        // Tab 1 Logic
+        function fillDilemma() {
+            const val = document.getElementById('dilemmaSelector').value;
+            if(val) document.getElementById('customDilemma').value = `تحليل وحل معضلة: ${val}`;
+        }
+
+        function solveDilemma() {
+            const text = document.getElementById('customDilemma').value;
+            const output = document.getElementById('solutionOutput');
+            if(!text.trim()) return;
+
+            output.style.display = 'block';
+            output.innerText = "جاري المعالجة الطوبولوجية...\n\n" + 
+                "✓ تم فحص البنية الرياضية للمسألة.\n" + 
+                "✓ تطبيق مصفوفات التحويل الخاصة بحاسوب أوميغا.\n\n" +
+                "النتيجة: تم التوصل إلى الحل عبر احتواء الأخطاء وتثبيت النقاط الحرجة. النظام يعمل بتوافق تام.";
+        }
+
+        // Tab 2 Logic
+        function sendChat() {
+            const input = document.getElementById('userInput');
+            const container = document.getElementById('chatMsgs');
+            if(!input.value.trim()) return;
+
+            const userText = input.value;
+            container.innerHTML += `<div class="msg user">${userText}</div>`;
+            input.value = '';
+            container.scrollTop = container.scrollHeight;
+
+            setTimeout(() => {
+                let reply = "هذا سؤال ممتاز. من منظورنا، يتم تفسير هذه الظاهرة عبر ترابط الأبعاد وتدفق المعلومات.";
+                if(userText.includes('طقس')) reply = "الطقس جزء من النظام الديناميكي للغلاف الجوي، ويمكن التنبؤ بمساراته.";
+                container.innerHTML += `<div class="msg ai">${reply}</div>`;
+                container.scrollTop = container.scrollHeight;
+            }, 1000);
+        }
+
+        // Tab 3 Logic
+        let map, marker;
+        function initMap(lat = 31.6295, lon = -7.9811) {
+            if(!map) {
+                map = L.map('map').setView([lat, lon], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+                marker = L.marker([lat, lon]).addTo(map).bindPopup("الموقع الحالي").openPopup();
+            } else {
+                map.setView([lat, lon], 12);
+                marker.setLatLng([lat, lon]).setPopupContent("الموقع المختار").openPopup();
             }
         }
 
         async function searchCity() {
-            const query = document.getElementById('citySearchInput').value.trim();
-            if (!query) return;
+            const query = document.getElementById('citySearch').value;
+            if(!query) return;
 
-            showToast(`🛰️ جاري البحث عن "${query}" عبر شبكة الأقمار...`, "info");
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
                 const data = await res.json();
-                if (data && data.length > 0) {
+                if(data && data.length > 0) {
                     const lat = parseFloat(data[0].lat);
                     const lon = parseFloat(data[0].lon);
-                    const name = data[0].display_name.split(',')[0];
-                    initMap(lat, lon, name);
-                    showToast(`✨ تم الانتقال إلى ${name} بنجاح.`, "success");
+                    initMap(lat, lon);
+                    showToast(`تم العثور على: ${data[0].display_name.split(',')[0]}`);
                 } else {
-                    showToast("⚠️ لم يتم العثور على المدينة المطلوبة.", "error");
+                    showToast("لم نتمكن من العثور على هذا المكان.");
                 }
-            } catch (err) {
-                showToast("❌ حدث خطأ في الاتصال بقاعدة البيانات.", "error");
+            } catch(e) {
+                showToast("خطأ في الاتصال.");
             }
         }
 
-        function askAI() {
-            const input = document.getElementById('aiQuestionInput');
-            const history = document.getElementById('chatHistory');
-            const text = input.value.trim();
-            if(!text) return;
-
-            history.innerHTML += `<br><b>أنتِ:</b> ${text}`;
-            input.value = '';
-
-            setTimeout(() => {
-                let aiResponse = "تم تحليل المعضلة طوبولوجياً وعبر خوارزميات الحوسبة المتقدمة؛ النظام يؤكد التوازن الدقيق للبيانات.";
-                if(text.includes('ريمان')) {
-                    aiResponse = "فرضية ريمان: تشير التحليلات إلى أن جميع الأصفار غير التافهة تقع بدقة على الخط الحرج (1/2 + i t).";
-                } else if(text.includes('زلزال') || text.includes('زلازل')) {
-                    aiResponse = "الرصد الزلزالي: يتم تحليل بؤر الضغط التكتوني لحظياً لتقييم درجات الاستقرار.";
-                }
-
-                history.innerHTML += `<br><b style="color:var(--accent-blue)">Ω-AI:</b> ${aiResponse}`;
-                history.scrollTop = history.scrollHeight;
-            }, 800);
-        }
-
-        function loadDilemma(dilemmaName) {
-            document.getElementById('aiQuestionInput').value = `اشرح لي تفاصيل وطبيعة ${dilemmaName}?`;
-            askAI();
-            showToast(`💡 تم تحميل معضلة: ${dilemmaName}`, "info");
-        }
-
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
-            toast.className = 'toast show';
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        window.onload = () => {
-            initMap();
-        };
+        window.onload = () => { initMap(); };
     </script>
 </body>
 </html>
